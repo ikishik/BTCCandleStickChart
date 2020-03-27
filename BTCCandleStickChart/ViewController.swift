@@ -13,6 +13,8 @@ class ViewController: UIViewController {
     
     private let scrollView = ChartScrollView()
     
+    private let connectionLabel = UILabel()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -35,6 +37,20 @@ class ViewController: UIViewController {
                    scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
                    scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
                    scrollView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)])
+        
+        connectionLabel.text = "No connection"
+        connectionLabel.translatesAutoresizingMaskIntoConstraints = false
+        connectionLabel.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        connectionLabel.textColor = .red
+        connectionLabel.textAlignment = .center
+        connectionLabel.isHidden = true
+        connectionLabel.sizeToFit()
+        view.addSubview(connectionLabel)
+        NSLayoutConstraint.activate([
+        connectionLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+               connectionLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+               connectionLabel.heightAnchor.constraint(equalToConstant: 30),
+               connectionLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)])
     }
     
     override func viewDidLayoutSubviews() {
@@ -51,10 +67,11 @@ extension ViewController : SocketListener {
     func websocketDidConnect() {
         
         BackendConnector.shared.sendMessage("SUBSCRIBE: BTCUSD")
+        connectionLabel.isHidden = true
     }
     
     func websocketDidDisconnect() {
-        
+        connectionLabel.isHidden = false
     }
     
     func websocketDidReceiveText(_ message: String) {

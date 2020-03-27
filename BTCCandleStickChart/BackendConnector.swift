@@ -42,7 +42,7 @@ class BackendConnector: WebSocketDelegate {
     
     func disconnect() {
         if (socket != nil && isConnected) {
-            socket.disconnect()
+            socket.disconnect(closeCode: CloseCode.normal.rawValue)
             socket.delegate = nil
         }
     }
@@ -70,6 +70,9 @@ class BackendConnector: WebSocketDelegate {
             isConnected = false
             print("websocket is disconnected: \(reason) with code: \(code)")
             listeners.forEach({ $0.websocketDidDisconnect() })
+            if code != CloseCode.normal.rawValue {
+                reconnect()
+            }
         case .text(let string):
             print("Received text: \(string)")
             listeners.forEach({ $0.websocketDidReceiveText(string) })
@@ -82,10 +85,13 @@ class BackendConnector: WebSocketDelegate {
         case .viablityChanged(_):
             break
         case .reconnectSuggested(_):
-            break
+            listeners.forEach({ $0.websocketDidDisconnect() })
+            reconnect()
         case .cancelled:
+            listeners.forEach({ $0.websocketDidDisconnect() })
             isConnected = false
         case .error(let error):
+            listeners.forEach({ $0.websocketDidDisconnect() })
             isConnected = false
             handleError(error)
         }
